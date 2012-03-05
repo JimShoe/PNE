@@ -10,7 +10,7 @@ fi
 touch $LOCK
 
 
-notify () {
+weechat_notify () {
   url=$1
   subject=$(echo $2 | sed 's/\&/and/g')
   body=$(echo $3 | sed 's/\&/and/g')
@@ -27,6 +27,7 @@ while : ; do
  wget -q -O - --timeout=5 -i - <<< "https://dev.throwthemind.com/m/listen.php?user=$USER&pass=$PASS" | while read m
   do
     if [ ! -n "$m" ]; then continue; fi
+    echo $m
     IFS=`echo -en "\n\b"`
     arr=()
     for i in `echo $m | sed 's/<\*>/\n/g'`; do
@@ -34,7 +35,10 @@ while : ; do
     done
     msg_type=${arr[0]}
     if [ $msg_type == "weechat" ]; then
-      notify ${arr[1]} ${arr[2]} ${arr[3]}
+      weechat_notify ${arr[1]} ${arr[2]} ${arr[3]}
+    fi
+    if [ $msg_type == "command" ]; then
+      /usr/bin/notify-send ${arr[1]} ${arr[2]}
     fi
   done                                                                # done with wget
 sleep 5;                                                              # retry wget
