@@ -11,16 +11,25 @@ touch $LOCK
 
 
 weechat_notify () {
-  url=$1
-  subject=$(echo $2 | sed 's/\&/and/g')
-  body=$(echo $3 | sed 's/\&/and/g')
-  url_fname="/tmp/"${url##*/}
-  if [ ! -f $url_fname ]; then
-    wget -q $url -O $url_fname
-  fi
+  subject=$(echo $1 | sed 's/\&/and/g')
+  body=$(echo $2 | sed 's/\&/and/g')
   focus=$(xwininfo -tree -id $(xdpyinfo | awk '/focus/ {gsub(",", "", $3); print $3}') | grep Parent | awk -F\" '{print $2}')
   if [[ $focus == weechat* ]]; then continue; fi
-  /usr/bin/notify-send --icon=$url_fname "$subject" "$body"
+  /usr/bin/notify-send --icon=$icon "$subject" "$body"
+}
+
+command_notify () {
+  subject=$(echo $1 | sed 's/\&/and/g')
+  body=$(echo $2 | sed 's/\&/and/g')
+  /usr/bin/notify-send --icon=$icon "$subject" "$body"
+}
+
+get_icon () {
+  url=$1
+  icon="/tmp/"${url##*/}
+  if [ ! -f $icon ]; then
+    wget -q $url -O $icon
+  fi
 }
 
 while : ; do
@@ -33,12 +42,15 @@ while : ; do
     for i in `echo $m | sed 's/<\*>/\n/g'`; do
       arr=("${arr[@]}" "$i")
     done
+    # check the message type and call notification functions
     msg_type=${arr[0]}
     if [ $msg_type == "weechat" ]; then
-      weechat_notify ${arr[1]} ${arr[2]} ${arr[3]}
+      get_icon ${arr[1]}
+      weechat_notify ${arr[2]} ${arr[3]}
     fi
     if [ $msg_type == "command" ]; then
-      /usr/bin/notify-send ${arr[1]} ${arr[2]}
+      get_icon ${arr[1]}
+      command_notify ${arr[2]} ${arr[3]}
     fi
   done                                                                # done with wget
 sleep 5;                                                              # retry wget
