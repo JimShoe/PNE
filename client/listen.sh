@@ -24,6 +24,7 @@ command_notify () {
   /usr/bin/notify-send --icon=$icon "$subject" "$body"
 }
 
+# if icon is not in /tmp, wget it
 get_icon () {
   url=$1
   icon="/tmp/"${url##*/}
@@ -32,8 +33,16 @@ get_icon () {
   fi
 }
 
+# check if screensaver is on
+screensaver_status () {
+  xscreensaver-command -time | grep -q locked
+}
+
 while : ; do
- wget -q -O - --timeout=5 -i - <<< "https://dev.throwthemind.com/m/listen.php?user=$USER&pass=$PASS" | while read m
+  sleep 5
+  screensaver_status && continue                          # if screensaver is on continue
+    
+ (wget -q -O - --timeout=5 -i - <<< "https://dev.throwthemind.com/m/listen.php?user=$USER&pass=$PASS" | while read m
   do
     if [ ! -n "$m" ]; then continue; fi
     echo $m
@@ -52,6 +61,11 @@ while : ; do
       get_icon ${arr[1]}
       command_notify ${arr[2]} ${arr[3]}
     fi
-  done                                                                # done with wget
-sleep 5;                                                              # retry wget
+  done)&
+
+  looppid=$!                                                   # get wget pid
+  while [ -d /proc/$looppid ]; do                              # check if wget command is running
+    screensaver_status && pkill -P $looppid && continue        # if screensave is on kill the wget and continue
+    sleep 5                                                    # sleep is screensaver is off
+  done   
 done
