@@ -38,6 +38,11 @@ screensaver_status () {
   xscreensaver-command -time | grep -q locked
 }
 
+cleanup()
+{
+  rm -rf /tmp/PNE.lock
+}
+
 while : ; do
   sleep 5
   screensaver_status && continue                          # if screensaver is on continue
@@ -69,3 +74,5 @@ while : ; do
     sleep 5                                                    # sleep is screensaver is off
   done   
 done
+
+trap cleanup EXIT
