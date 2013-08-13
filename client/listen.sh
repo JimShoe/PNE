@@ -2,6 +2,7 @@
 
 USER="laptop"
 PASS="banana"
+SERVER="https://frcv.net/PNE/server"
 
 LOCK="/tmp/PNE.lock"
 if [ -f $LOCK ]; then
@@ -47,7 +48,7 @@ while : ; do
   sleep 5
   screensaver_status && continue                          # if screensaver is on continue
     
- (wget -q -O - --timeout=5 -i - <<< "https://dev.throwthemind.com/m/listen.php?user=$USER&pass=$PASS" | while read m
+ (wget -q -O - --timeout=5 -i - <<< "$SERVER/listen.php?user=$USER&pass=$PASS" | while read m
   do
     if [ ! -n "$m" ]; then continue; fi
     echo $m
