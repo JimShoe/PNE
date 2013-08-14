@@ -41,7 +41,7 @@ screensaver_status () {
 
 cleanup()
 {
-  rm -rf /tmp/PNE.lock
+  rm -rf $LOCK
 }
 
 while : ; do
