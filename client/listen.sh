@@ -4,12 +4,13 @@ USER="laptop"
 PASS="banana"
 SERVER="https://frcv.net/PNE/server"
 
-LOCK="/tmp/PNE.lock"
-if [ -f $LOCK ]; then
-  exit
-fi
-touch $LOCK
+LOCK="/tmp/PNE.LOCK";
+exec 8>$LOCK;
 
+if flock -n -e 8; then :
+else
+  exit 1;
+fi
 
 weechat_notify () {
   subject=$(echo $1 | sed 's/\&/and/g')
@@ -37,11 +38,6 @@ get_icon () {
 # check if screensaver is on
 screensaver_status () {
   xscreensaver-command -time | grep -q locked
-}
-
-cleanup()
-{
-  rm -rf $LOCK
 }
 
 while : ; do
@@ -75,5 +71,3 @@ while : ; do
     sleep 5                                                    # sleep is screensaver is off
   done   
 done
-
-trap cleanup EXIT
